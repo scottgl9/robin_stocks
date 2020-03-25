@@ -51,7 +51,7 @@ def respond_to_challenge(challenge_id, sms_code):
     return(helper.request_post(url, payload))
 
 
-def login(username=None, password=None, expiresIn=86400, scope='internal', by_sms=True, store_session=True):
+def login(username=None, password=None, expiresIn=86400, scope='internal', by_sms=True, mfa_token=None, store_session=True):
     """This function will effectivly log the user into robinhood by getting an
     authentication token and saving it to the session header. By default, it
     will store the authentication token in a pickle file and load that value
@@ -69,6 +69,8 @@ def login(username=None, password=None, expiresIn=86400, scope='internal', by_sm
     :type scope: Optional[str]
     :param by_sms: Specifies whether to send an email(False) or an sms(True)
     :type by_sms: Optional[boolean]
+    :param mfa_token: Specifies the mfa code
+    :type mfa_token: Optional[str]
     :param store_session: Specifies whether to save the log in authorization
         for future log ins.
     :type store_session: Optional[boolean]
@@ -97,9 +99,12 @@ def login(username=None, password=None, expiresIn=86400, scope='internal', by_sm
         'password': password,
         'scope': scope,
         'username': username,
-        'challenge_type': challenge_type,
         'device_token': device_token
     }
+
+    if not mfa_token:
+        payload['challenge_type'] = challenge_type
+
     # If authentication has been stored in pickle file then load it. Stops login server from being pinged so much.
     if os.path.isfile(pickle_path):
         # If store_session has been set to false then delete the pickle file, otherwise try to load it.
@@ -144,7 +149,8 @@ def login(username=None, password=None, expiresIn=86400, scope='internal', by_sm
     data = helper.request_post(url, payload)
     # Handle case where mfa or challenge is required.
     if 'mfa_required' in data:
-        mfa_token = input("Please type in the MFA code: ")
+        if not mfa_token:
+            mfa_token = input("Please type in the MFA code: ")
         payload['mfa_code'] = mfa_token
         res = helper.request_post(url, payload, jsonify_data=False)
         while (res.status_code != 200):
