@@ -34,7 +34,11 @@ from .crypto import load_crypto_profile,        \
                     get_crypto_info,            \
                     get_crypto_quote,           \
                     get_crypto_quote_from_id,   \
-                    get_crypto_positions
+                    get_crypto_positions,       \
+                    get_crypto_historical
+
+from .export import export_completed_stock_orders, \
+                    export_completed_option_orders
 
 from .helper import request_get,      \
                     request_post,     \
@@ -64,21 +68,32 @@ from .options import get_aggregate_positions,                           \
                      get_option_instrument_data,                        \
                      get_option_historicals
 
-from .orders import get_all_orders,                 \
+from .orders import get_all_stock_orders,           \
                     get_all_option_orders,          \
-                    get_all_open_orders,            \
+                    get_all_crypto_orders,          \
+                    get_all_open_stock_orders,      \
                     get_all_open_option_orders,     \
-                    get_order_info,                 \
+                    get_all_open_crypto_orders,     \
+                    get_stock_order_info,           \
                     get_option_order_info,          \
-                    find_orders,                    \
-                    cancel_all_open_orders,         \
-                    cancel_order,                   \
+                    get_crypto_order_info,          \
+                    find_stock_orders,              \
+                    cancel_all_stock_orders,        \
+                    cancel_all_option_orders,       \
+                    cancel_all_crypto_orders,       \
+                    cancel_stock_order,             \
+                    cancel_option_order,            \
+                    cancel_crypto_order,            \
                     order,                          \
                     order_buy_market,               \
+                    order_buy_fractional_by_quantity,\
+                    order_buy_fractional_by_price,  \
                     order_buy_limit,                \
                     order_buy_stop_loss,            \
                     order_buy_stop_limit,           \
                     order_sell_market,              \
+                    order_sell_fractional_by_quantity,\
+                    order_sell_fractional_by_price, \
                     order_sell_limit,               \
                     order_sell_stop_loss,           \
                     order_sell_stop_limit,          \
@@ -121,6 +136,3 @@ from .stocks import get_quotes,                 \
                     get_pricebook_by_symbol,    \
                     get_stock_quote_by_id,      \
                     get_stock_quote_by_symbol
-
-from .export import export_completed_stock_orders, \
-                    export_completed_option_orders
