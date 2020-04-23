@@ -50,18 +50,45 @@ Not all of the functions contained in the module need the user to be authenticat
 contained in the modules 'stocks' and 'options' do not require authentication, but it's still good practice
 to log into Robinhood at the start of each script.
 
-There is the ability to buy and sell stocks, options, and crypto-currencies. For example, if you wanted to buy 10 shares
-of Apple, you would type
+There is the ability to buy and sell stocks, options, and crypto-currencies.
+There is also the ability to submit market orders, limit orders, and stop orders as long as
+Robinhood supports it. Here is a list of possible trades you can make
 
+>>> #Buy 10 shares of Apple at market price
 >>> r.order_buy_market('AAPL',10)
+>>> #Sell half a Bitcoin is price reaches 10,000
+>>> r.order_sell_crypto_limit('BTC',0.5,10000)
+>>> #Buy $500 worth of Bitcoin
+>>> r.order_buy_crypto_by_price('BTC',500)
+>>> #Buy 5 $150 May 1st, 2020 SPY puts if the price per contract is $1.00. Good until cancelled.
+>>> r.order_buy_option_limit('open','debit',1.00,'SPY',5,'2020-05-01',150,'put','gtc')
 
-and if you wanted to sell half your Tesla stock if it fell to 200.00 you would type
+Now let's try a slightly more complex example. Let's say you wanted to sell half your Tesla stock if it fell to 200.00.
+To do this you would type
 
 >>> positions_data = r.get_current_positions()
->>> TSLAData = [item for item in positions_data if
->>>            r.get_name_by_url(item['instrument']) == r.get_name_by_symbol('TSLA')][0]
+>>> ## Note: This for loop adds the stock ticker to every order, since Robinhood
+>>> ## does not provide that information in the stock orders.
+>>> ## This process is very slow since it is making a GET request for each order.
+>>> for item in positions_data:
+>>>     item['symbol'] = r.get_symbol_by_url(item['instrument'])
+>>> TSLAData = [item for item in positions_data if item['symbol'] == 'TSLA']
 >>> sellQuantity = float(TSLAData['quantity'])//2.0
 >>> r.order_sell_limit('TSLA',sellQuantity,200.00)
+
+You can also view all orders you have made. This includes filled orders, cancelled orders, and open orders.
+Stocks, options, and cryptocurrencies are separated into three different locations.
+For example, let's say that you have some limit orders to buy and sell Bitcoin and those orders have yet to be filled.
+If you want to cancel all your limit sells, you would type
+
+>>> positions_data = r.get_all_open_crypto_orders()
+>>> ## Note: Again we are adding symbol to our list of orders because Robinhood
+>>> ## does not include this with the order information.
+>>> for item in positions_data:
+>>>    item['symbol'] = r.get_crypto_quote_from_id(item['currency_pair_id'], 'symbol')
+>>> btcOrders = [item for item in positions_data if item['symbol'] == 'BTCUSD' and item['side'] == 'sell']
+>>> for item in btcOrders:
+>>>    r.cancel_crypto_order(item['id'])
 
 If you want to view all the call options for a list of stocks you could type
 
@@ -70,6 +97,10 @@ If you want to view all the call options for a list of stocks you could type
 >>> for item in optionData:
 >>>     print(' price -',item['strike_price'],' exp - ',item['expiration_date'],' symbol - ',
 >>>           item['chain_symbol'],' delta - ',item['delta'],' theta - ',item['theta'])
+
+There is a lot more that you can do with this API. Be sure to check out the examples folder to
+see even more examples. This folder will get updated periodically to demonstrate new functionality
+and best practices.
 
 Keep in mind that the functions contained in the library are just wrappers around a functional API,
 and you are free to write your own functions that interact with the Robinhood API. I've
